@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Specialty Router</title>
+<style>
+  :root {
+    --bg: #05050c;
+    --text: #f5f7fa;
+    --muted: #9aa3b2;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --card: rgba(18, 20, 30, 0.60);
+    --card-2: rgba(255, 255, 255, 0.04);
+    --input: rgba(255, 255, 255, 0.03);
+    --blue: #4f8cff;
+    --purple: #8b5cf6;
+    --cyan: #22d3ee;
+    --seg: rgba(255, 255, 255, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---- aurora background ---- */
+  .aurora {
+    position: fixed; inset: 0; z-index: -1; overflow: hidden;
+    background: var(--bg);
+  }
+  .aurora::before, .aurora::after {
+    content: ""; position: absolute; border-radius: 50%; filter: blur(110px); opacity: 0.55;
+    will-change: transform;
+  }
+  .aurora::before {
+    width: 620px; height: 620px; top: -160px; left: -120px;
+    background: radial-gradient(circle, rgba(79, 140, 255, 0.55), transparent 70%);
+    animation: drift1 18s ease-in-out infinite alternate;
+  }
+  .aurora::after {
+    width: 560px; height: 560px; top: -120px; right: -140px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.50), transparent 70%);
+    animation: drift2 22s ease-in-out infinite alternate;
+  }
+  .aurora .glow3 {
+    position: absolute; width: 700px; height: 700px; left: 30%; bottom: -320px;
+    border-radius: 50%; filter: blur(130px); opacity: 0.4;
+    background: radial-gradient(circle, rgba(34, 211, 238, 0.45), transparent 70%);
+    animation: drift3 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { to { transform: translate(70px, 40px) scale(1.12); } }
+  @keyframes drift2 { to { transform: translate(-60px, 60px) scale(1.08); } }
+  @keyframes drift3 { to { transform: translate(-40px, -50px) scale(1.1); } }
+
+  .grid {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+
+  /* ---- nav ---- */
+  .nav {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(5, 5, 12, 0.55);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .brand {
+    font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+    background: linear-gradient(90deg, #fff, #a9b4c6);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav .pill {
+    font-size: 11px; font-weight: 500; color: var(--muted);
+    border: 1px solid var(--hairline); border-radius: 999px; padding: 4px 12px;
+    background: var(--seg);
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 72px 22px 100px; }
+
+  /* ---- hero ---- */
+  .hero { text-align: center; margin-bottom: 42px; }
+  h1 {
+    font-size: 52px; font-weight: 800; letter-spacing: -0.035em; margin: 0 0 14px; line-height: 1.02;
+    background: linear-gradient(180deg, #ffffff 20%, #8f9bb0 90%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .sub { color: var(--muted); font-size: 16px; margin: 0 auto; max-width: 460px; }
+
+  /* ---- card ---- */
+  .card {
+    position: relative;
+    background: var(--card);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid var(--hairline);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 24px 70px rgba(0, 0, 0, 0.55);
+  }
+
+  .segmented {
+    display: inline-flex; flex-wrap: wrap; gap: 3px;
+    background: var(--seg); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 3px; margin-bottom: 24px;
+  }
+  .segmented button {
+    border: none; background: transparent; color: var(--muted);
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    padding: 9px 16px; border-radius: 9px; cursor: pointer;
+    transition: all .2s ease; white-space: nowrap;
+  }
+  .segmented button:hover { color: var(--text); }
+  .segmented button.active {
+    background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+    color: #fff; font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 18px rgba(0,0,0,0.35);
+  }
+
+  textarea {
+    width: 100%; min-height: 220px; resize: vertical;
+    background: var(--input); color: var(--text);
+    border: 1px solid var(--hairline); border-radius: 14px;
+    padding: 16px 18px; font-family: inherit; font-size: 15px; line-height: 1.65;
+    outline: none; transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  textarea:focus {
+    border-color: rgba(79, 140, 255, 0.6);
+    box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.14), 0 0 24px rgba(79, 140, 255, 0.12);
+  }
+  textarea::placeholder { color: var(--muted); }
+
+  .hint { color: var(--muted); font-size: 13px; margin-top: 14px; }
+
+  /* ---- result ---- */
+  .result { display: none; margin-top: 30px; }
+  .result.visible { display: block; animation: rise .4s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .result-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
+    padding-bottom: 22px; border-bottom: 1px solid var(--hairline);
+  }
+  .specialty {
+    font-size: 36px; font-weight: 800; letter-spacing: -0.03em; margin: 0; line-height: 1.08;
+    background: linear-gradient(120deg, #ffffff, #c7d2fe);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .conf-badge { text-align: right; flex-shrink: 0; }
+  .conf-num {
+    font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, var(--blue), var(--purple), var(--cyan));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 16px rgba(99, 120, 255, 0.35));
+  }
+  .conf-caption { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .bar-wrap { margin: 20px 0 6px; }
+  .bar {
+    height: 10px; border-radius: 999px; overflow: hidden;
+    background: rgba(255,255,255,0.07);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .bar > span {
+    display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+    box-shadow: 0 0 18px rgba(124, 130, 255, 0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+    position: relative; overflow: hidden;
+  }
+  .bar > span::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: shine 2.4s ease-in-out infinite;
+  }
+  @keyframes shine { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
+
+  .conf-label { font-size: 12px; color: var(--muted); }
+
+  .section { margin-top: 26px; }
+  .section h2 {
+    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin: 0 0 13px;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-size: 13px; font-weight: 500; color: var(--text);
+    background: var(--card-2); border: 1px solid var(--hairline);
+    border-radius: 10px; padding: 8px 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .chip b {
+    font-weight: 700;
+    background: linear-gradient(120deg, #a5b8ff, #c4b5fd);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .chip .tag { color: var(--muted); font-size: 11px; margin-left: 5px; }
+
+  .alts { list-style: none; margin: 0; padding: 0; }
+  .alts li {
+    display: flex; align-items: center; gap: 14px; padding: 11px 0; font-size: 14px;
+    border-top: 1px solid var(--hairline);
+  }
+  .alts li:first-child { border-top: none; }
+  .alts .nm { flex: 1; font-weight: 500; }
+  .alts .pct { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 50px; text-align: right; }
+  .alts .mini { width: 110px; height: 7px; background: rgba(255,255,255,0.07); border-radius: 999px; overflow: hidden; }
+  .alts .mini > span {
+    display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue), var(--purple)); opacity: 0.6;
+  }
+
+  .error { color: #ff6b6b; font-size: 13px; margin-top: 14px; display: none; }
+
+  footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--hairline); }
+  .disclaimer { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .disclaimer strong { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 38px; }
+    .result-head { flex-direction: column; gap: 6px; }
+    .conf-badge { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora::before, .aurora::after, .aurora .glow3, .bar > span::after { animation: none !important; }
+    * { animation-duration: 0.001s !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="aurora"><div class="glow3"></div></div>
+<div class="grid"></div>
+
+<nav class="nav">
+  <span class="brand">Specialty Router</span>
+  <span class="pill">Course prototype &middot; not a medical device</span>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Specialty Router</h1>
+    <p class="sub">Predict the medical specialty of a clinical note &mdash; decision support for routing, with a human in the loop.</p>
+  </div>
+
+  <div class="card">
+    <div class="segmented" id="segmented" role="group" aria-label="Model">
+      <button data-model="lr" class="active">TF-IDF + Logistic Regression</button>
+    </div>
+
+    <textarea id="note" placeholder="Paste a fictional or de-identified clinical note here&#8230;" maxlength="12000"></textarea>
+    <div class="hint" id="hint">Enter a fictional or de-identified note (at least 20 characters).</div>
+
+    <div class="result" id="result">
+      <div class="result-head">
+        <p class="specialty" id="specialty"></p>
+        <div class="conf-badge">
+          <div class="conf-num" id="confNum"></div>
+          <div class="conf-caption" id="confCaption">confidence</div>
+        </div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar"><span id="confBar"></span></div>
+      </div>
+      <div class="conf-label" id="confLabel"></div>
+
+      <div class="section" id="whySection">
+        <h2>Why this specialty</h2>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div class="section" id="altsSection">
+        <h2>Other possibilities</h2>
+        <ul class="alts" id="alts"></ul>
+      </div>
+
+      <div class="error" id="error"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p class="disclaimer">
+      <strong>Course prototype for research/educational purposes. Not a medical device. Not for clinical use.</strong><br>
+      This public demo runs the team's trained TF-IDF logistic regression model on the hosting server.
+      Submitted text is sent to that server to generate predictions. Do not submit real clinical records,
+      personal health information, or confidential material. Predictions can be wrong and must not be used
+      for clinical decisions.
+    </p>
+  </footer>
+</div>
+
+<script>
+  let currentModel = "lr";
+
+  async function predict(model, text) {
+    const r = await fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, text }),
+    });
+    return r.json();
+  }
+
+  function render(d) {
+    const resultEl = document.getElementById("result");
+    const errEl = document.getElementById("error");
+    if (d.error) {
+      errEl.textContent = d.error;
+      errEl.style.display = "block";
+      resultEl.classList.remove("visible");
+      return;
+    }
+    errEl.style.display = "none";
+    resultEl.classList.add("visible");
+
+    document.getElementById("specialty").textContent = d.specialty || "—";
+
+    if (d.confidence != null) {
+      document.getElementById("confNum").textContent = (d.confidence * 100).toFixed(1) + "%";
+      document.getElementById("confBar").style.width = (d.confidence * 100).toFixed(1) + "%";
+      document.getElementById("confCaption").textContent = "confidence";
+      document.getElementById("confLabel").textContent = d.note;
+    } else {
+      document.getElementById("confNum").textContent = "—";
+      document.getElementById("confBar").style.width = "0%";
+      document.getElementById("confCaption").textContent = "rule-based";
+      document.getElementById("confLabel").textContent = d.note;
+    }
+
+    if (d.why && d.why.length) {
+      document.getElementById("whySection").style.display = "";
+      const chips = document.getElementById("chips");
+      chips.replaceChildren();
+      for (const t of d.why) {
+        const chip = document.createElement("span"); chip.className = "chip";
+        const bold = document.createElement("b"); bold.textContent = t.term;
+        chip.appendChild(bold);
+        if (t.note) {
+          const tag = document.createElement("span"); tag.className = "tag";
+          tag.textContent = t.note; chip.appendChild(tag);
+        }
+        chips.appendChild(chip);
+      }
+    } else {
+      document.getElementById("whySection").style.display = "none";
+    }
+
+    if (d.probs && d.probs.length) {
+      document.getElementById("altsSection").style.display = "";
+      const alts = document.getElementById("alts");
+      alts.replaceChildren();
+      for (const p of d.probs) {
+        const li = document.createElement("li");
+        const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.class;
+        const mini = document.createElement("span"); mini.className = "mini";
+        const bar = document.createElement("span");
+        bar.style.width = Math.max(0, Math.min(100, p.prob * 100)).toFixed(1) + "%";
+        mini.appendChild(bar);
+        const pct = document.createElement("span"); pct.className = "pct";
+        pct.textContent = (p.prob * 100).toFixed(1) + "%";
+        li.append(nm, mini, pct); alts.appendChild(li);
+      }
+    } else {
+      document.getElementById("altsSection").style.display = "none";
+    }
+  }
+
+  let requestNumber = 0;
+  async function run() {
+    const mine = ++requestNumber;
+    const text = document.getElementById("note").value;
+    const resultEl = document.getElementById("result");
+    const hintEl = document.getElementById("hint");
+    if (text.trim().length < 20) {
+      resultEl.classList.remove("visible");
+      hintEl.textContent = "Enter a fictional or de-identified note (at least 20 characters).";
+      return;
+    }
+    hintEl.textContent = "";
+    try {
+      const response = await predict(currentModel, text);
+      if (mine !== requestNumber) return;
+      render(response);
+    } catch (err) {
+      if (mine !== requestNumber) return;
+      const e = document.getElementById("error");
+      e.textContent = "Cannot reach the server. Is it running? (python app.py)";
+      e.style.display = "block";
+    }
+  }
+
+  document.getElementById("segmented").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    currentModel = btn.dataset.model;
+    document.querySelectorAll("#segmented button").forEach((b) => b.classList.toggle("active", b === btn));
+    run();
+  });
+
+  let t = null;
+  document.getElementById("note").addEventListener("input", () => {
+    if (t) clearTimeout(t);
+    t = setTimeout(run, 180);
+  });
+</script>
+</body>
+</html>
